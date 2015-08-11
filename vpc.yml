@@ -7,8 +7,10 @@
     region: eu-west-1
     profile: pixxis
     name_prefix: dev
+    instance_name_prefix: d
     stack: Development
     key_name: TestKP
+    zone: pixxis.be
   tasks:
 
   - name: ensure the vpc, subnets, internet gateway and route table are present
@@ -41,8 +43,6 @@
           - dest: 0.0.0.0/0
             gw: igw
     register: vpc
-
-    #- debug: var=vpc
 
   - name: find public subnet 1a
     set_fact: vpc_subnet_id="{{ item.id }}"
@@ -97,8 +97,8 @@
       vpc_subnet_id: "{{ vpc_subnet_id }}"
       key_name: "{{ key_name }}"
       group: BastionSG
-      instance_tags: {Type: Bastion, Stack: "{{ stack }}"}
-      assign_public_ip: no
+      instance_tags: {Name: "{{ instance_name_prefix }}bastion", Type: Bastion, Stack: "{{ stack }}"}
+      assign_public_ip: yes
       profile: "{{ profile }}"
       region: "{{ region }}"
       source_dest_check: False
@@ -107,24 +107,13 @@
       count_tag: {Type: Bastion}
     register: ec2_bastion
 
-        # 
-        #     # - name: allocate a new elastic IP and associate it with the bastion 
-        #     # - ec2_eip: 
-        #     # -   instance_id: "{{ ec2_bastion.instances[0].id }}"
-        #    
-        #   - name: Associate new elastic IPs with each of the instances
-        #     ec2_eip: region="{{ ec2_region }}" instance_id="{{ item }}"
-        #     with_items: ec2_bastion.instance_ids
-        #     register: eip
-        #   
-        #   - name: output the IP
-        #     debug: msg="Allocated IP inside a VPC is {{ eip.public_ip }}"
-        #                             
-        #   - name: Set DNS Record for New Instance
-        #     route53: >
-        #       ommand=create
-        #       zone=mydowmain.com
-        #       record=webserver.mydomain.com
-        #       type=A
-        #       ttl=7200
-        #       value={{ eip.public_ip }}
+  - name: Set DNS Record for New Instance
+    route53: 
+      # profile: "{{ profile }}"
+      # region: "{{ region }}"
+      command: create
+      zone: "{{ zone }}"
+      record: "{{ instance_name_prefix }}bastion.{{ zone }}"
+      type: A
+      ttl: 7200
+      value: "{{ ec2_bastion.tagged_instances[0].public_ip }}"
