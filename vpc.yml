@@ -44,6 +44,16 @@
             gw: igw
     register: vpc
 
+  - debug: var=inventory_file
+  - debug: var=inventory_dir
+  - debug: var=vpc
+  
+  - name: add the vpc id to the list of global variables 
+    lineinfile:
+      dest: "{{ inventory_dir }}/group_vars/all.yml" 
+      regexp: "^vpc_id:"
+      line: "vpc_id: {{ vpc.vpc_id }}"
+
   - name: find public subnet 1a
     set_fact: vpc_subnet_id="{{ item.id }}"
     when: item.resource_tags.Name == "{{ name_prefix }}-public-1a"

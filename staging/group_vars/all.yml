@@ -1,0 +1,3 @@
+---
+# file: staging/group_vars/all
+vpc_id: vpc-76e67513

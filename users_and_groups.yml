@@ -1,0 +1,11 @@
+# vim:ft=ansible:
+---
+- name: ensure the sysadmin group is present on the server
+  group: name=somegroup state=present
+
+# User glnds
+- name: ensure user glnds is present as sysadmin on the server
+  user: name=glnds shell=/bin/bash groups=sysadmin state=present
+
+- name: ensure public key for glnds is present on the server
+  authorized_key: user=glnds key=public_keys/glnds.pub state=present

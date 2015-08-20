@@ -1,0 +1,28 @@
+# vim:ft=ansible:
+---
+- name: ensure the nginx servers aje present
+  hosts: localhost
+  gather_facts: False
+  tasks:
+  
+  - name: find public subnet 1a
+    set_fact: vpc_subnet_id="{{ item.id }}"
+    when: item.resource_tags.Name == "{{ name_prefix }}-public-1a"
+    with_items: vpc.subnets
+
+  - name: maintain the nginx ec2 instance
+    ec2:
+      image: ami-6975eb1e
+      instance_type: t2.micro
+      vpc_subnet_id: "{{ vpc_subnet_id }}"
+      key_name: "{{ key_name }}"
+      group: BastionSG
+      instance_tags: {Name: "{{ instance_name_prefix }}bastion", Type: Bastion, Stack: "{{ stack }}"}
+      assign_public_ip: yes
+      profile: "{{ profile }}"
+      region: "{{ region }}"
+      source_dest_check: False
+      wait: yes
+      exact_count: 1
+      count_tag: {Type: Bastion}
+    register: ec2_bastion
