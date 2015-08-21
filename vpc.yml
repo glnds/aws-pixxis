@@ -6,8 +6,8 @@
   vars:
     region: eu-west-1
     profile: pixxis
-    name_prefix: dev
-    instance_name_prefix: d
+    name_prefix: staging
+    instance_name_prefix: s
     stack: Development
     key_name: TestKP
     zone: pixxis.be
@@ -44,10 +44,6 @@
             gw: igw
     register: vpc
 
-  - debug: var=inventory_file
-  - debug: var=inventory_dir
-  - debug: var=vpc
-  
   - name: add the vpc id to the list of global variables 
     lineinfile:
       dest: "{{ inventory_dir }}/group_vars/all.yml" 
@@ -59,71 +55,6 @@
     when: item.resource_tags.Name == "{{ name_prefix }}-public-1a"
     with_items: vpc.subnets
 
-  - name: ensure the bastion security group is present
-    ec2_group:
-      name: BastionSG
-      description: Bastion security group
-      vpc_id: "{{ vpc.vpc_id }}"
-      profile: "{{ profile }}"
-      region: "{{ region }}"
-      rules:
-        - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 100.0.0.0/20 
-        - proto: tcp
-          from_port: 443
-          to_port: 443
-          cidr_ip: 100.0.0.0/20
-        - proto: tcp
-          from_port: 22
-          to_port: 22
-          cidr_ip: 0.0.0.0/22
-      rules_egress:
-        - proto: tcp
-          from_port: 80
-          to_port: 80
-          cidr_ip: 0.0.0.0/0
-        - proto: tcp
-          from_port: 443
-          to_port: 443
-          cidr_ip: 0.0.0.0/0
-    register: aws_sg
-
-  - name: tag the bastion security group
-    ec2_tag:
-      profile: "{{ profile }}"
-      resource: "{{aws_sg.group_id}}"
-      region: "{{ region }}"
-      state: present
-      tags:
-        Name: "BastionSG"
-        Stack: "{{ stack }}"
-  
-  - name: launch a new bastion host 
-    ec2:
-      image: ami-6975eb1e
-      instance_type: t2.micro
-      vpc_subnet_id: "{{ vpc_subnet_id }}"
-      key_name: "{{ key_name }}"
-      group: BastionSG
-      instance_tags: {Name: "{{ instance_name_prefix }}bastion", Type: Bastion, Stack: "{{ stack }}"}
-      assign_public_ip: yes
-      profile: "{{ profile }}"
-      region: "{{ region }}"
-      source_dest_check: False
-      wait: yes
-      exact_count: 1
-      count_tag: {Type: Bastion}
-    register: ec2_bastion
-
-  - name: Set DNS Record for New Instance
-    route53: 
-      # profile: "{{ profile }}"
-      # region: "{{ region }}"
-      command: create
-      zone: "{{ zone }}"
-      record: "{{ instance_name_prefix }}bastion.{{ zone }}"
-      type: A
-      ttl: 7200
-      value: "{{ ec2_bastion.tagged_instances[0].public_ip }}"
+  - include: vpc_security.yml
+ 
+  - include: vpc_bastion.yml 

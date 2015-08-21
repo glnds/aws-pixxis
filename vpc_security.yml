@@ -1,0 +1,42 @@
+# vim:ft=ansible:
+---
+- name: ensure the bastion security group is present
+  ec2_group:
+    name: BastionSG
+    description: Bastion security group
+    vpc_id: "{{ vpc.vpc_id }}"
+    profile: "{{ profile }}"
+    region: "{{ region }}"
+    rules:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 100.0.0.0/20 
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 100.0.0.0/20
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: 0.0.0.0/22
+    rules_egress:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 443
+        to_port: 443
+        cidr_ip: 0.0.0.0/0
+  register: aws_sg
+
+- name: tag the bastion security group
+  ec2_tag:
+    profile: "{{ profile }}"
+    resource: "{{aws_sg.group_id}}"
+    region: "{{ region }}"
+    state: present
+    tags:
+      Name: "BastionSG"
+      Stack: "{{ stack }}"

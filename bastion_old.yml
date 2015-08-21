@@ -1,0 +1,86 @@
+# vim:ft=ansible:
+---
+- name: Setup a bastion on test
+  hosts: localhost
+  gather_facts: False
+  tasks:
+  - name: bastion security group
+    ec2_group:
+      name: BastionSG
+      description: Bastion security group
+      vpc_id: vpc-c8b226ad
+      profile: pixxis
+      region: eu-west-1
+      rules:
+        - proto: tcp
+          from_port: 80
+          to_port: 80
+          cidr_ip: 100.0.0.0/20 
+        - proto: tcp
+          from_port: 443
+          to_port: 443
+          cidr_ip: 100.0.0.0/20
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/22
+      rules_egress:
+        - proto: tcp
+          from_port: 80
+          to_port: 80
+          cidr_ip: 0.0.0.0/0
+        - proto: tcp
+          from_port: 443
+          to_port: 443
+          cidr_ip: 0.0.0.0/0
+    register: aws_sg
+
+  - name: tag a security group
+    ec2_tag:
+      profile: pixxis
+      resource: "{{aws_sg.group_id}}"
+      region: eu-west-1
+      state: present
+      tags:
+        Name: "BastionSG"
+        Stack: "Staging"
+  
+  - name: launch a new bastion host 
+    ec2:
+      image: ami-6975eb1e
+      instance_type: t2.micro
+      vpc_subnet_id: subnet-15620a62
+      key_name: TestKP
+      group: BastionSG
+      instance_tags: {Type: Bastion, Stack: Staging}
+      assign_public_ip: no
+      profile: pixxis
+      region: eu-west-1
+      source_dest_check: False
+      wait: yes
+      exact_count: 1
+      count_tag: {Type: Bastion}
+    register: ec2_bastion
+
+    # - name: allocate a new elastic IP and associate it with the bastion 
+    # - ec2_eip: 
+    # -   instance_id: "{{ ec2_bastion.instances[0].id }}"
+   
+  - name: Associate new elastic IPs with each of the instances
+    ec2_eip: region="{{ ec2_region }}" instance_id="{{ item }}"
+    with_items: ec2_bastion.instance_ids
+    register: eip
+  
+  - name: output the IP
+    debug: msg="Allocated IP inside a VPC is {{ eip.public_ip }}"
+                            
+  - name: Set DNS Record for New Instance
+    route53: >
+      ommand=create
+      zone=mydowmain.com
+      record=webserver.mydomain.com
+      type=A
+      ttl=7200
+      value={{ eip.public_ip }}
+
+
