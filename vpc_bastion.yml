@@ -8,7 +8,7 @@
     key_name: "{{ key_name }}"
     group: BastionSG
     instance_tags: {Name: "{{ instance_name_prefix }}bastion", Type: Bastion, Stack: "{{ stack }}"}
-    assign_public_ip: yes
+    assign_public_ip: no 
     profile: "{{ profile }}"
     region: "{{ region }}"
     source_dest_check: False
@@ -17,13 +17,24 @@
     count_tag: {Type: Bastion}
   register: ec2_bastion
 
+- name: debug bastion
+  debug: var=ec2_bastion
+
+- name: associate an elastic IP with the bastion
+  ec2_eip: instance_id="{{ ec2_bastion.tagged_instances[0].id }}" ip=54.72.144.181 region="{{ region }}"
+  register: eip
+
+- name: output the IP
+  debug: msg="Allocated IP inside a VPC is {{ eip.public_ip }}"
+  
 - name: Set DNS Record for New Instance
   route53: 
     # profile: "{{ profile }}"
     # region: "{{ region }}"
     command: create
+    overwrite: yes
     zone: "{{ zone }}"
     record: "{{ instance_name_prefix }}bastion.{{ zone }}"
     type: A
     ttl: 7200
-    value: "{{ ec2_bastion.tagged_instances[0].public_ip }}"
+    value: "{{ eip.public_ip }}"

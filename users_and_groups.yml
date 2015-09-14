@@ -1,11 +1,15 @@
 # vim:ft=ansible:
 ---
-- name: ensure the sysadmin group is present on the server
-  group: name=somegroup state=present
+- name: manage users and groups
+  hosts: bastion 
+  tasks:
 
-# User glnds
-- name: ensure user glnds is present as sysadmin on the server
-  user: name=glnds shell=/bin/bash groups=sysadmin state=present
-
-- name: ensure public key for glnds is present on the server
-  authorized_key: user=glnds key=public_keys/glnds.pub state=present
+  - name: ensure the sysadmin group is on the host
+    group: name=sysadmin state=present
+  
+  # User Gert Leenders
+  - name: ensure user Gert leenders is on the host as sysadmin
+    user: name=glnds comment="Gert Leenders" uid=2001 group=sysadmin shell=/bin/bash
+  
+  - name: ensure the public key for Gert Leenders is on the host
+    authorized_key: user=glnds key="{{ lookup('file', 'glnds.pub') }}"  
