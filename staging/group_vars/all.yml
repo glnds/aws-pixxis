@@ -1,3 +1,7 @@
 ---
 # file: staging/group_vars/all
-vpc_id: vpc-dfd94bba
+vpc_id: vpc-087c1d6d
+staging_private_1a: subnet-6e0b7319
+staging_public_1a: subnet-6d0b731a
+staging_private_1b: subnet-7d72e124
+staging_public_1b: subnet-7c72e125

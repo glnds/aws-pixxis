@@ -1,6 +1,6 @@
 # vim:ft=ansible:
 ---
-- name: launch a new bastion host 
+- name: ensure one bastion host is present
   ec2:
     image: ami-6975eb1e
     instance_type: t2.micro
@@ -17,9 +17,6 @@
     count_tag: {Type: Bastion}
   register: ec2_bastion
 
-- name: debug bastion
-  debug: var=ec2_bastion
-
 - name: associate an elastic IP with the bastion
   ec2_eip: instance_id="{{ ec2_bastion.tagged_instances[0].id }}" ip=54.72.144.181 region="{{ region }}"
   register: eip
@@ -27,7 +24,7 @@
 - name: output the IP
   debug: msg="Allocated IP inside a VPC is {{ eip.public_ip }}"
   
-- name: Set DNS Record for New Instance
+- name: Set DNS Record for new instance
   route53: 
     # profile: "{{ profile }}"
     # region: "{{ region }}"

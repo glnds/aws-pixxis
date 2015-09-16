@@ -1,5 +1,6 @@
 
-bastion   ansible_ssh_host=pxsbastion
+bastion       ansible_ssh_host=pxsbastion
+weba          ansible_ssh_host=pxsweba
 
-[local}
-localhost		ansible_connection=local
+[local]
+localhost     ansible_connection=local

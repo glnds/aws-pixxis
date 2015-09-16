@@ -1,0 +1,18 @@
+# vim:ft=ansible:
+---
+- name: ensure the webserver hosts are running
+  ec2:
+    image: ami-e4ff5c93
+    instance_type: t2.medium
+    private_ip: 100.0.0.10
+    vpc_subnet_id: "{{ staging_private_1a }}"
+    key_name: "{{ key_name }}"
+    group: WebserverSG
+    instance_tags: {Name: "{{ instance_name_prefix }}webserver", Type: Webserver, Stack: "{{ stack }}"}
+    assign_public_ip: no 
+    profile: "{{ profile }}"
+    region: "{{ region }}"
+    wait: yes
+    exact_count: 1
+    count_tag: {Type: Webserver}
+  register: ec2_webserver

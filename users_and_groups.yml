@@ -1,7 +1,7 @@
 # vim:ft=ansible:
 ---
 - name: manage users and groups
-  hosts: bastion 
+  hosts: all
   sudo: yes
   tasks:
 
@@ -14,3 +14,11 @@
   
   - name: ensure the public key for Gert Leenders is on the host
     authorized_key: user=glnds key="{{ lookup('file', 'files/public_keys/glnds.pub') }}"  
+
+  - name: allow sudo without password
+    lineinfile:
+      dest: /etc/sudoers
+      state: present
+      regexp: '^%glnds'
+      line: "%sysadmin     ALL=(ALL)       NOPASSWD: ALL"
+      insertafter: '^root(\s*)ALL=(ALL)(\s*)ALL'
