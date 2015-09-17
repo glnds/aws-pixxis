@@ -1,4 +1,4 @@
-
+[remotes]
 bastion       ansible_ssh_host=pxsbastion
 weba          ansible_ssh_host=pxsweba
 

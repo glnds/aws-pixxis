@@ -1,7 +1,7 @@
 # vim:ft=ansible:
 ---
 - name: manage users and groups
-  hosts: all
+  hosts: remotes
   sudo: yes
   tasks:
 
@@ -19,6 +19,6 @@
     lineinfile:
       dest: /etc/sudoers
       state: present
-      regexp: '^%glnds'
-      line: "%sysadmin     ALL=(ALL)       NOPASSWD: ALL"
-      insertafter: '^root(\s*)ALL=(ALL)(\s*)ALL'
+      regexp: '^%sysadmin(\s*)ALL'
+      line: '%sysadmin     ALL=(ALL)       NOPASSWD: ALL'
+      insertafter: '^root(\s*)ALL'

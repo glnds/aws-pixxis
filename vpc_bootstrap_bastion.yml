@@ -35,3 +35,26 @@
     type: A
     ttl: 7200
     value: "{{ eip.public_ip }}"
+
+- name: ensure the vpc's internet gateway and route tables are present
+  ec2_vpc:
+    state: present
+    region: "{{ region }}"
+    profile: "{{ profile }}"
+    internet_gateway: True
+    resource_tags: { Name: "vpc-{{ name_prefix }}", Stack: "{{ stack }}" }
+    cidr_block: 100.0.0.0/16
+    wait: yes
+    route_tables:
+      - subnets:
+        - 100.0.16.0/24
+        - 100.0.80.0/24
+        routes:
+        - dest: 0.0.0.0/0
+          gw: igw
+      - subnets:
+        - 100.0.0.0/20
+        - 100.0.64.0/20
+        routes:
+        - dest: 0.0.0.0/0
+          gw: "{{ ec2_bastion.tagged_instances[0].id }}"

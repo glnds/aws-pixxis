@@ -13,7 +13,7 @@
     zone: pixxis.be
   tasks:
 
-  - name: ensure the vpc, subnets, internet gateway and route table are present
+  - name: ensure the vpc and subnets present
     ec2_vpc:
       state: present
       region: "{{ region }}"
@@ -35,13 +35,6 @@
         - cidr: 100.0.80.0/24
           az: eu-west-1b
           resource_tags: { Name: "{{ name_prefix }}_public_1b", Stack: "{{ stack }}" }
-      route_tables:
-        - subnets:
-          - 100.0.16.0/24
-          - 100.0.80.0/24
-          routes:
-          - dest: 0.0.0.0/0
-            gw: igw
     register: vpc
 
   - name: add the vpc id to the list of global variables
@@ -63,7 +56,7 @@
     with_items: vpc.subnets
 
   - name: store the subnet name variables
-    set_fact: "{{ item.resourse_tags.Name }}={{ item.id }}"
+    set_fact: "{{ item.resource_tags.Name }}={{ item.id }}"
     with_items: vpc.subnets
 
   - include: vpc_security.yml
