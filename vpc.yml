@@ -3,14 +3,6 @@
 - name: VPC setup
   hosts: localhost
   gather_facts: False
-  vars:
-    region: eu-west-1
-    profile: pixxis
-    name_prefix: staging
-    instance_name_prefix: s
-    stack: Development
-    key_name: TestKP
-    zone: pixxis.be
   tasks:
 
   - name: ensure the vpc and subnets present

@@ -1,0 +1,8 @@
+# vars file for localhost
+region: eu-west-1
+profile: pixxis
+name_prefix: staging
+instance_name_prefix: s
+stack: Development
+key_name: TestKP
+zone: pixxis.be

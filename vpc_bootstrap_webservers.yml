@@ -15,4 +15,8 @@
     wait: yes
     exact_count: 1
     count_tag: {Type: Webserver}
-  register: ec2_webserver
+    volumes:
+      - device_name: /dev/sda1
+        device_type: gp2
+        volume_size: 120
+        delete_on_termination: True

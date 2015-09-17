@@ -1,0 +1,9 @@
+# vim:ft=ansible:
+---
+- name: bring all remote instaces up to date
+  hosts: remotes
+  sudo: yes
+  tasks:
+
+  - name: upgrade all packages
+    yum: name=* state=latest
