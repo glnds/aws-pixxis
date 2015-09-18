@@ -96,3 +96,22 @@
         from_port: 22
         to_port: 22
         group_id: "{{ webserver_sg.group_id }}"
+
+- name: ensure the ecs container instances security group is present
+  ec2_group:
+    name: ECSContainerSG
+    description: ECSContainer security group
+    vpc_id: "{{ vpc.vpc_id }}"
+    profile: "{{ profile }}"
+    region: "{{ region }}"
+  register: ecscontainer_sg
+
+- name: tag the ecs container security group
+  ec2_tag:
+    profile: "{{ profile }}"
+    resource: "{{ ecscontainer_sg.group_id }}"
+    region: "{{ region }}"
+    state: present
+    tags:
+      Name: "ECSContainerSG"
+      Stack: "{{ stack }}"
