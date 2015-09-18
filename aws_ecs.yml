@@ -1,0 +1,27 @@
+# vim:ft=ansible:
+---
+- name: manage the AWS ECS infrastructure
+  hosts: localhost
+  gather_facts: False
+  tasks:
+
+  - name: ensure the ecs container instances are running
+    ec2:
+      image: ami-bd5572ca
+      instance_type: t2.medium
+      vpc_subnet_id: subnet-0278ea5b
+      key_name: "{{ key_name }}"
+      instance_profile_name: ecsInstanceRole
+      group: EC2ContainerService-default-67ac1c69-a0fb-4e51-b974-14a43735c12e-EcsSecurityGroup-S94NE0X56V48
+      instance_tags: {Name: "{{ instance_name_prefix }}ecscontainer", Type: ECSContainer, Stack: "{{ stack }}"}
+      assign_public_ip: yes
+      profile: "{{ profile }}"
+      region: "{{ region }}"
+      wait: yes
+      exact_count: 1
+      count_tag: {Type: ECSContainer}
+      volumes:
+        - device_name: /dev/xvda
+          device_type: gp2
+          volume_size: 120
+          delete_on_termination: True
