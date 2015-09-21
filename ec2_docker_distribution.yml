@@ -1,0 +1,30 @@
+# vim:gt=ansible:
+---
+- name: setup and maintain a private ec2 docker registry (distribution)
+  hosts: localhost
+  gather_facts: False
+  tasks:
+
+  - name: ensure there's a private bucket to store the registry content on s3
+    s3: bucket=pixxis-docker-registry-data mode=create permission=private
+
+  - name: ensure a docker user is present
+    iam:
+      iam_type: user
+      name: "DockerRegistry"
+      state: present
+      access_key_state: create
+    register: dockerUser
+
+  - name: if a new user was created print its AWS key credentialsB
+    debug: msg="AWS access key {{ dockerUser.user_meta.access_keys[0].access_key_id }}, AWS secret access key {{ dockerUser.user_meta.access_keys[0].secret_access_key }}"
+    when: dockerUser.user_meta.access_keys is defined
+
+  - name: ensure the docker user has access to the docker s3 bucket
+    iam_policy:
+      profile: "{{ profile }}"
+      iam_type: user
+      iam_name: DockerRegistry
+      policy_name: docker-registry-access
+      state: present
+      policy_document: files/registry-policy.json
