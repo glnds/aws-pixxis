@@ -1,0 +1,45 @@
+# vim:ft=ansible:
+---
+- name: Bootstrap a CI server
+  hosts: localhost
+  gather_facts: False
+  tasks:
+
+  - name: ensure the ci server security group is present
+    ec2_group:
+      name: CISG
+      description: CI security group
+      vpc_id: "{{ vpc_id }}"
+      profile: "{{ profile }}"
+      region: "{{ region }}"
+      rules:
+        - proto: tcp
+          from_port: 22
+          to_port: 22
+          cidr_ip: 0.0.0.0/0 
+        - proto: tcp
+          from_port: 8080
+          to_port: 8080
+          cidr_ip: 0.0.0.0/0 
+    register: ci_sg
+
+  - name: ensure the ci host is running
+    ec2:
+      image: ami-e4ff5c93
+      instance_type: t2.small
+      private_ip: 100.0.16.5
+      vpc_subnet_id: "{{ staging_public_1a }}"
+      key_name: "{{ key_name }}"
+      group: CISG
+      instance_tags: {Name: "{{ instance_name_prefix }}ci", Type: CI, Stack: "{{ stack }}"}
+      assign_public_ip: yes
+      profile: "{{ profile }}"
+      region: "{{ region }}"
+      wait: yes
+      exact_count: 1
+      count_tag: {Type: CI}
+      volumes:
+        - device_name: /dev/sda1
+          device_type: gp2
+          volume_size: 120
+          delete_on_termination: True

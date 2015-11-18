@@ -1,8 +1,8 @@
 # vim:ft=ansible:
 ---
 - name: manage users and groups
-  hosts: remotes
-  sudo: yes
+  hosts: ci-server
+  sudo: Yes
   tasks:
 
   - name: ensure the sysadmin group is on the host

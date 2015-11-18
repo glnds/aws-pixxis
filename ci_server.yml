@@ -1,0 +1,13 @@
+# vim:ft=ansible:
+---
+- name: Manage the CI server
+  hosts: ci-server
+  sudo: Yes
+  gather_facts: True
+  vars:
+    jenkins_hostname: jenkins.pixxis.be
+  tasks:
+    - name: set the ci server hostname
+      hostname: name=jenkins.pixxis.be
+  roles:
+      - geerlingguy.jenkins
